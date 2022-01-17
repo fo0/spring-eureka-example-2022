@@ -13,9 +13,12 @@ import reactor.core.publisher.Mono;
 public class Controller {
 
   private final WebClient.Builder client;
+  private final WebClient.Builder requestClient;
 
-  public Controller(@Qualifier("load-balanced") Builder client) {
+  public Controller(@Qualifier("load-balanced") Builder client,
+                    @Qualifier("load-balanced-request-scope") Builder requestClient) {
     this.client = client;
+    this.requestClient = requestClient;
   }
 
   private void execute() {
@@ -41,6 +44,17 @@ public class Controller {
   @GetMapping("test-call-2")
   public void test2() {
     execute();
+  }
+
+  @GetMapping("test-call-3")
+  public Mono<String> test3() {
+    return requestClient
+        .baseUrl("http://demo")
+        .build()
+        .get()
+        .uri("/hello")
+        .retrieve()
+        .bodyToMono(String.class);
   }
 
   @GetMapping("test-call")
